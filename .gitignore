@@ -3,3 +3,9 @@ node_modules
 .env.*
 dist
 server/uploads
+uploads/
+node_modules/
+dist/
+*.tsbuildinfo
+login.json
+jar.txt

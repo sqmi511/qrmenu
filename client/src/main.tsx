@@ -1,10 +1,22 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.tsx'
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { MotionConfig } from "framer-motion";
+import { BrowserRouter } from "react-router-dom";
+import App from "./App";
+import { PrefsProvider } from "./context/PrefsProvider";
+import { ToastProvider } from "./context/ToastProvider";
+import "./index.css";
 
-createRoot(document.getElementById('root')!).render(
+createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <App />
+    <BrowserRouter>
+      <MotionConfig reducedMotion="user">
+        <PrefsProvider>
+          <ToastProvider>
+            <App />
+          </ToastProvider>
+        </PrefsProvider>
+      </MotionConfig>
+    </BrowserRouter>
   </StrictMode>,
-)
+);

@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: qrmenu-api
+    runtime: node
+    plan: free
+    rootDir: server
+    buildCommand: npm ci --include=dev
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      - key: NODE_ENV
+        value: production
+      - key: TRUST_PROXY
+        value: 2
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: CLIENT_URL
+        sync: false
+      - key: BILLING_WHISH_NUMBER
+        sync: false
+      - key: BILLING_WHATSAPP
+        sync: false

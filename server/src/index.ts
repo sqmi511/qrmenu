@@ -1,24 +1,28 @@
-import "dotenv/config";
-import express from "express";
-import cors from "cors";
-import helmet from "helmet";
+import { createServer } from "node:http";
 import mongoose from "mongoose";
+import { createApp } from "./app.js";
+import { connectDB } from "./config/db.js";
+import { env } from "./config/env.js";
+import { initSocket } from "./socket.js";
 
-const app = express();
-app.use(helmet());
-app.use(cors({ origin: process.env.CLIENT_URL }));
-app.use(express.json());
+async function main() {
+  await connectDB();
+  const server = createServer(createApp());
+  const io = initSocket(server);
+  server.listen(env.PORT, () => console.log(`API on http://localhost:${env.PORT}`));
 
-app.get("/api/health", (_req, res) => {
-  res.json({ ok: true, db: mongoose.connection.readyState === 1 });
+  const shutdown = () => {
+    // closes the socket server and the underlying HTTP server
+    void io.close(async () => {
+      await mongoose.disconnect();
+      process.exit(0);
+    });
+  };
+  process.on("SIGINT", shutdown);
+  process.on("SIGTERM", shutdown);
+}
+
+main().catch((e) => {
+  console.error(e);
+  process.exit(1);
 });
-
-const PORT = process.env.PORT || 5000;
-
-mongoose
-  .connect(process.env.MONGO_URI!)
-  .then(() => app.listen(PORT, () => console.log(`API on http://localhost:${PORT}`)))
-  .catch((err) => {
-    console.error("Mongo error:", err.message);
-    process.exit(1);
-  });
