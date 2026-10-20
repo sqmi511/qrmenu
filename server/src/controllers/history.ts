@@ -19,7 +19,8 @@ export const listHistory = asyncHandler(async (req, res) => {
   const filter: Record<string, unknown> = { restaurant: restaurantId };
   if (q.status) filter.status = q.status;
   // orders from before delivery existed have no orderType: they are dine-in
-  if (q.type) filter.orderType = q.type === "delivery" ? "delivery" : { $ne: "delivery" };
+  if (q.type === "dine_in") filter.orderType = { $nin: ["delivery", "takeaway"] };
+  else if (q.type) filter.orderType = q.type;
   if (q.from || q.to) filter.createdAt = { ...(q.from && { $gte: q.from }), ...(q.to && { $lt: q.to }) };
   if (q.cursor) filter._id = { $lt: q.cursor };
 

@@ -37,6 +37,7 @@ export interface PublicRestaurant {
   pricesIncludeVat: boolean;
   dineInEnabled: boolean;
   deliveryEnabled: boolean;
+  takeawayEnabled: boolean;
   deliveryFeeMinor: number;
   minDeliveryOrderMinor: number;
   whatsappNumber: string;
@@ -55,7 +56,7 @@ export interface PublicMenu {
 }
 
 export type OrderStatus = "pending" | "accepted" | "preparing" | "ready" | "served" | "cancelled";
-export type OrderType = "dine_in" | "delivery";
+export type OrderType = "dine_in" | "delivery" | "takeaway";
 export type PaymentMethod = "cash" | "card";
 export type PaymentStatus = "unpaid" | "paid";
 
@@ -64,7 +65,7 @@ export interface LatLng {
   lng: number;
 }
 
-/** delivery form state */
+/** delivery / takeaway form state */
 export interface CustomerInput {
   name: string;
   phone: string;
@@ -86,6 +87,7 @@ export interface PublicOrder {
   totalMinor: number;
   paymentMethod: PaymentMethod;
   paymentStatus: PaymentStatus;
+  pickupNote: string;
   createdAt: string;
   updatedAt: string;
   customer: { name: string; phone: string; address: string; notes: string; location: LatLng | null } | null;

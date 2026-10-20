@@ -27,6 +27,7 @@ function Line({ en, ar, value, strong }: { en: string; ar: string; value: string
 function InvoiceSheet({ order, restaurant, format }: { order: AdminOrder; restaurant: AdminRestaurant; format: Format }) {
   const money = (n: number) => formatMoney(n, restaurant.currency, "en");
   const delivery = order.orderType === "delivery";
+  const takeaway = order.orderType === "takeaway";
   const c = order.customer;
   const pct = (order.vatBps ?? 0) / 100;
   const vat = order.vatMinor ?? 0;
@@ -65,18 +66,27 @@ function InvoiceSheet({ order, restaurant, format }: { order: AdminOrder; restau
             <>
               Delivery / <span lang="ar">توصيل</span>
             </>
+          ) : takeaway ? (
+            <>
+              Takeaway / <span lang="ar">سفري</span>
+            </>
           ) : (
             <>
               Table / <span lang="ar">طاولة</span> {order.tableNumber ?? ""}
             </>
           )}
         </p>
+        {takeaway && order.pickupNote && (
+          <p>
+            Pickup / <span lang="ar">الاستلام</span>: {order.pickupNote}
+          </p>
+        )}
         {c && (
           <>
             <p>
               {c.name} · {c.phone}
             </p>
-            <p>{c.address}</p>
+            {c.address && <p>{c.address}</p>}
           </>
         )}
       </div>

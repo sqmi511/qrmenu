@@ -13,6 +13,7 @@ export interface Stats {
   vatMinor: number;
   collectedMinor: number;
   deliveryOrders: number;
+  takeawayOrders?: number;
   dineInOrders: number;
   cancelled: number;
   pendingNow: number;

@@ -3,6 +3,7 @@ export interface Settings {
   pricesIncludeVat: boolean;
   dineInEnabled: boolean;
   deliveryEnabled: boolean;
+  takeawayEnabled: boolean;
   deliveryFeeMinor: number;
   minDeliveryOrderMinor: number;
   whatsappNumber: string;
@@ -16,13 +17,14 @@ export interface Settings {
 }
 
 export const SETTING_FIELDS =
-  "vatBps pricesIncludeVat dineInEnabled deliveryEnabled deliveryFeeMinor minDeliveryOrderMinor whatsappNumber paymentCash paymentCard deliveryPerKmMinor freeDeliveryOverMinor maxDeliveryKm locationLat locationLng";
+  "vatBps pricesIncludeVat dineInEnabled deliveryEnabled takeawayEnabled deliveryFeeMinor minDeliveryOrderMinor whatsappNumber paymentCash paymentCard deliveryPerKmMinor freeDeliveryOverMinor maxDeliveryKm locationLat locationLng";
 
 const DEFAULTS: Settings = {
   vatBps: 1100,
   pricesIncludeVat: false,
   dineInEnabled: true,
   deliveryEnabled: false,
+  takeawayEnabled: false,
   deliveryFeeMinor: 0,
   minDeliveryOrderMinor: 0,
   whatsappNumber: "",
@@ -43,6 +45,7 @@ export function withSettings<T extends Partial<Settings>>(r: T): T & Settings {
     pricesIncludeVat: r.pricesIncludeVat ?? DEFAULTS.pricesIncludeVat,
     dineInEnabled: r.dineInEnabled ?? DEFAULTS.dineInEnabled,
     deliveryEnabled: r.deliveryEnabled ?? DEFAULTS.deliveryEnabled,
+    takeawayEnabled: r.takeawayEnabled ?? DEFAULTS.takeawayEnabled,
     deliveryFeeMinor: r.deliveryFeeMinor ?? DEFAULTS.deliveryFeeMinor,
     minDeliveryOrderMinor: r.minDeliveryOrderMinor ?? DEFAULTS.minDeliveryOrderMinor,
     whatsappNumber: r.whatsappNumber ?? DEFAULTS.whatsappNumber,

@@ -24,6 +24,7 @@ const shape = {
   pricesIncludeVat: z.boolean(),
   dineInEnabled: z.boolean(),
   deliveryEnabled: z.boolean(),
+  takeawayEnabled: z.boolean(),
   deliveryFeeMinor: z.number().int().min(0).max(10_000_000),
   minDeliveryOrderMinor: z.number().int().min(0).max(10_000_000),
   whatsappNumber: z

@@ -9,6 +9,7 @@ import {
   History,
   QrCode,
   Receipt,
+  Store,
   TrendingUp,
   Trophy,
   UtensilsCrossed,
@@ -211,7 +212,10 @@ export default function Dashboard() {
   const money = (n: number) => formatMoney(n, currency, "en");
   const avg = data.orders > 0 ? Math.round(data.salesMinor / data.orders) : 0;
   const paidPct = data.salesMinor > 0 ? Math.round((data.collectedMinor / data.salesMinor) * 100) : 0;
-  const dinePct = data.orders > 0 ? Math.round((data.dineInOrders / data.orders) * 100) : 0;
+  const takeawayOrders = data.takeawayOrders ?? 0;
+  const pctOf = (n: number) => (data.orders > 0 ? Math.round((n / data.orders) * 100) : 0);
+  const dinePct = pctOf(data.dineInOrders);
+  const takePct = pctOf(takeawayOrders);
   const topMax = Math.max(1, data.top[0]?.qty ?? 1);
 
   return (
@@ -327,13 +331,22 @@ export default function Dashboard() {
 
         <section className={cn(card, "mt-4")}>
           <h2 className="font-bold">Order types</h2>
-          <div className="mt-4 flex h-3 overflow-hidden rounded-full bg-line/60" role="img" aria-label={`${dinePct}% dine-in`}>
+          <div
+            className="mt-4 flex h-3 overflow-hidden rounded-full bg-line/60"
+            role="img"
+            aria-label={`${dinePct}% dine-in, ${takePct}% takeaway`}
+          >
             <motion.div animate={{ width: `${dinePct}%` }} transition={spring} className="bg-brand" />
+            <motion.div animate={{ width: `${takePct}%` }} transition={spring} className="bg-brand/50" />
           </div>
           <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm">
             <span className="inline-flex items-center gap-2">
               <Armchair className="h-4 w-4 text-brand-ink" aria-hidden />
               Dine-in <strong>{data.dineInOrders}</strong>
+            </span>
+            <span className="inline-flex items-center gap-2">
+              <Store className="h-4 w-4 text-brand-ink/60" aria-hidden />
+              Takeaway <strong>{takeawayOrders}</strong>
             </span>
             <span className="inline-flex items-center gap-2">
               <Bike className="h-4 w-4 text-muted" aria-hidden />

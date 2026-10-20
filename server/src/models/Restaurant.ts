@@ -28,6 +28,7 @@ const restaurantSchema = new Schema(
     pricesIncludeVat: { type: Boolean, default: false },
     dineInEnabled: { type: Boolean, default: true },
     deliveryEnabled: { type: Boolean, default: false },
+    takeawayEnabled: { type: Boolean, default: false },
     deliveryFeeMinor: { type: Number, default: 0, min: 0, max: 10_000_000, validate: isInt },
     minDeliveryOrderMinor: { type: Number, default: 0, min: 0, max: 10_000_000, validate: isInt },
     whatsappNumber: { type: String, default: "", match: /^(\d{6,15})?$/ },

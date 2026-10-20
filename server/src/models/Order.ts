@@ -5,7 +5,7 @@ import { isInt, makeLocalized } from "./shared.js";
 export const ORDER_STATUSES = ["pending", "accepted", "preparing", "ready", "served", "cancelled"] as const;
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
 
-export const ORDER_TYPES = ["dine_in", "delivery"] as const;
+export const ORDER_TYPES = ["dine_in", "delivery", "takeaway"] as const;
 export const PAYMENT_METHODS = ["cash", "card"] as const;
 export const PAYMENT_STATUSES = ["unpaid", "paid"] as const;
 
@@ -41,7 +41,8 @@ const customerSchema = new Schema(
   {
     name: { type: String, required: true, trim: true, minlength: 2, maxlength: 80 },
     phone: { type: String, required: true, trim: true, match: /^\+?\d{6,15}$/ },
-    address: { type: String, required: true, trim: true, minlength: 5, maxlength: 300 },
+    // required for delivery by the zod schema; takeaway customers have no address
+    address: { type: String, trim: true, maxlength: 300, default: "" },
     notes: { type: String, trim: true, maxlength: 200, default: "" },
     location: { type: locationSchema, default: undefined },
   },
@@ -53,7 +54,8 @@ const orderSchema = new Schema(
     restaurant: { type: Schema.Types.ObjectId, ref: "Restaurant", required: true },
     orderType: { type: String, enum: ORDER_TYPES, default: "dine_in" },
     tableNumber: { type: Number, min: 1, max: 500, validate: isInt }, // dine-in only (enforced by zod)
-    customer: { type: customerSchema, default: undefined }, // delivery only (enforced by zod)
+    customer: { type: customerSchema, default: undefined }, // delivery and takeaway (enforced by zod)
+    pickupNote: { type: String, trim: true, maxlength: 80, default: "" }, // takeaway only, e.g. "in 20 minutes"
     lines: {
       type: [lineSchema],
       validate: { validator: (v: unknown[]) => v.length > 0 && v.length <= 50, message: "1 to 50 lines" },

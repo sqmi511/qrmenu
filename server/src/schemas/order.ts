@@ -14,6 +14,8 @@ const lines = z
   .max(50)
   .refine((a) => new Set(a.map((l) => l.itemId.toLowerCase())).size === a.length, "Duplicate items");
 
+const name = z.string().trim().min(2).max(80);
+
 const phone = z
   .string()
   .trim()
@@ -21,7 +23,7 @@ const phone = z
   .refine((s) => /^\+?\d{6,15}$/.test(s), "Invalid phone number");
 
 const customer = z.strictObject({
-  name: z.string().trim().min(2).max(80),
+  name,
   phone,
   address: z.string().trim().min(5).max(300),
   notes: z.string().trim().max(200).optional(),
@@ -29,6 +31,9 @@ const customer = z.strictObject({
     .strictObject({ lat: z.number().min(-90).max(90), lng: z.number().min(-180).max(180) })
     .optional(),
 });
+
+// takeaway: name and phone only
+const pickupCustomer = z.strictObject({ name, phone });
 
 const paymentMethod = z.enum(PAYMENT_METHODS).default("cash");
 
@@ -40,6 +45,13 @@ export const createOrderBody = z.discriminatedUnion("orderType", [
     lines,
   }),
   z.strictObject({ orderType: z.literal("delivery"), customer, paymentMethod, lines }),
+  z.strictObject({
+    orderType: z.literal("takeaway"),
+    customer: pickupCustomer,
+    pickupNote: z.string().trim().max(80).optional(),
+    paymentMethod,
+    lines,
+  }),
 ]);
 
 export const listOrdersQuery = z.object({

@@ -1,4 +1,4 @@
-import { Armchair, Bike, FileText, History as HistoryIcon, Loader2 } from "lucide-react";
+import { Armchair, Bike, FileText, History as HistoryIcon, Loader2, Store } from "lucide-react";
 import { useState } from "react";
 import InvoiceDialog from "../../components/admin/InvoiceDialog";
 import PageTransition from "../../components/PageTransition";
@@ -89,6 +89,7 @@ export default function History() {
           <option value="">All</option>
           <option value="dine_in">Dine-in</option>
           <option value="delivery">Delivery</option>
+          <option value="takeaway">Takeaway</option>
         </SelectField>
         <Field label="From" type="date" value={f.from} max={f.to || undefined} onChange={(e) => setF({ ...f, from: e.target.value })} />
         <Field label="To" type="date" value={f.to} min={f.from || undefined} onChange={(e) => setF({ ...f, to: e.target.value })} />
@@ -120,6 +121,7 @@ export default function History() {
           <ul className={cn("mt-6 space-y-2 transition-opacity", loading && "opacity-60")} aria-busy={loading}>
             {rows.map((o) => {
               const delivery = o.orderType === "delivery";
+              const takeaway = o.orderType === "takeaway";
               const st = STATUS[o.status];
               const paid = o.paymentStatus === "paid";
               return (
@@ -131,10 +133,16 @@ export default function History() {
                     <p className="flex items-center gap-2 font-bold">
                       {delivery ? (
                         <Bike className="h-4 w-4 shrink-0 text-brand-ink" aria-hidden />
+                      ) : takeaway ? (
+                        <Store className="h-4 w-4 shrink-0 text-brand-ink" aria-hidden />
                       ) : (
                         <Armchair className="h-4 w-4 shrink-0 text-brand-ink" aria-hidden />
                       )}
-                      {delivery ? `Delivery · ${o.customer?.name ?? ""}` : `Table ${o.tableNumber ?? "?"}`}
+                      {delivery
+                        ? `Delivery · ${o.customer?.name ?? ""}`
+                        : takeaway
+                          ? `Takeaway · ${o.customer?.name ?? ""}`
+                          : `Table ${o.tableNumber ?? "?"}`}
                     </p>
                     <p className="text-xs text-muted">
                       {fmtDate.format(new Date(o.createdAt))}

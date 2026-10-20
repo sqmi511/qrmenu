@@ -1,20 +1,20 @@
 import { Banknote, CreditCard, type LucideIcon } from "lucide-react";
 import { cn } from "../../lib/cn";
 import { useCT } from "../../lib/i18n-checkout";
-import type { PaymentMethod } from "../../lib/types";
+import type { OrderType, PaymentMethod } from "../../lib/types";
 
 interface Props {
   methods: PaymentMethod[];
   value: PaymentMethod;
   onChange: (m: PaymentMethod) => void;
-  delivery: boolean;
+  type: OrderType;
 }
 
-export default function PaymentPicker({ methods, value, onChange, delivery }: Props) {
+export default function PaymentPicker({ methods, value, onChange, type }: Props) {
   const ct = useCT();
   const meta: Record<PaymentMethod, { label: string; hint: string; icon: LucideIcon }> = {
-    cash: { label: ct.payCash, hint: ct.payCashHint(delivery), icon: Banknote },
-    card: { label: ct.payCard, hint: ct.payCardHint(delivery), icon: CreditCard },
+    cash: { label: ct.payCash, hint: ct.payCashHint(type), icon: Banknote },
+    card: { label: ct.payCard, hint: ct.payCardHint(type), icon: CreditCard },
   };
 
   return (

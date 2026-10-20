@@ -21,7 +21,14 @@ const statsQuery = z.object({
 });
 
 interface Facets {
-  totals: { orders: number; salesMinor: number; vatMinor: number; collectedMinor: number; delivery: number }[];
+  totals: {
+    orders: number;
+    salesMinor: number;
+    vatMinor: number;
+    collectedMinor: number;
+    delivery: number;
+    takeaway: number;
+  }[];
   cancelled: { n: number }[];
   daily: { _id: string; orders: number; salesMinor: number }[];
   top: { _id: unknown; name: { en: string; ar?: string }; qty: number; salesMinor: number }[];
@@ -50,6 +57,7 @@ export const getStats = asyncHandler(async (req, res) => {
                 vatMinor: { $sum: { $ifNull: ["$vatMinor", 0] } },
                 collectedMinor: { $sum: { $cond: [{ $eq: ["$paymentStatus", "paid"] }, "$totalMinor", 0] } },
                 delivery: { $sum: { $cond: [{ $eq: ["$orderType", "delivery"] }, 1, 0] } },
+                takeaway: { $sum: { $cond: [{ $eq: ["$orderType", "takeaway"] }, 1, 0] } },
               },
             },
           ],
@@ -89,6 +97,7 @@ export const getStats = asyncHandler(async (req, res) => {
   const t = f?.totals[0];
   const orders = t?.orders ?? 0;
   const delivery = t?.delivery ?? 0;
+  const takeaway = t?.takeaway ?? 0;
 
   res.set("Cache-Control", "no-store");
   res.json({
@@ -101,7 +110,8 @@ export const getStats = asyncHandler(async (req, res) => {
       vatMinor: t?.vatMinor ?? 0,
       collectedMinor: t?.collectedMinor ?? 0,
       deliveryOrders: delivery,
-      dineInOrders: orders - delivery,
+      takeawayOrders: takeaway,
+      dineInOrders: orders - delivery - takeaway,
       cancelled: f?.cancelled[0]?.n ?? 0,
       pendingNow,
       daily: (f?.daily ?? []).map((d) => ({ day: d._id, orders: d.orders, salesMinor: d.salesMinor })),

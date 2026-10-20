@@ -35,8 +35,10 @@ export const createOrder = asyncHandler(async (req, res) => {
   if (body.orderType === "dine_in") {
     if (!restaurant.dineInEnabled) throw new HttpError(400, "Dine-in ordering is not available");
     if (body.tableNumber > restaurant.tableCount) throw new HttpError(400, "Unknown table");
-  } else if (!restaurant.deliveryEnabled) {
-    throw new HttpError(400, "Delivery is not available");
+  } else if (body.orderType === "delivery") {
+    if (!restaurant.deliveryEnabled) throw new HttpError(400, "Delivery is not available");
+  } else if (!restaurant.takeawayEnabled) {
+    throw new HttpError(400, "Takeaway is not available");
   }
 
   const methodOn = body.paymentMethod === "cash" ? restaurant.paymentCash : restaurant.paymentCard;
@@ -74,6 +76,7 @@ export const createOrder = asyncHandler(async (req, res) => {
   });
   const subtotalMinor = lines.reduce((s, l) => s + l.priceMinorSnapshot * l.qty, 0);
 
+  // only delivery has a fee; dine-in and takeaway are always 0
   let deliveryFeeMinor = 0;
   let distanceKm: number | null = null;
   if (body.orderType === "delivery") {
@@ -103,6 +106,7 @@ export const createOrder = asyncHandler(async (req, res) => {
     restaurant: found._id,
     orderType: body.orderType,
     ...(body.orderType === "dine_in" ? { tableNumber: body.tableNumber } : { customer: body.customer }),
+    ...(body.orderType === "takeaway" && body.pickupNote ? { pickupNote: body.pickupNote } : {}),
     paymentMethod: body.paymentMethod,
     ...(distanceKm !== null ? { deliveryDistanceKm: distanceKm } : {}),
     lines,
@@ -130,7 +134,7 @@ export const getPublicOrder = asyncHandler(async (req, res) => {
     .lean();
   if (!restaurant) throw notFound("Order");
 
-  // orders created before VAT/delivery/payment existed have no such fields
+  // orders created before VAT/delivery/payment/takeaway existed have no such fields
   const c = order.customer;
   res.set("Cache-Control", "no-store");
   res.json({
@@ -147,10 +151,17 @@ export const getPublicOrder = asyncHandler(async (req, res) => {
       totalMinor: order.totalMinor,
       paymentMethod: order.paymentMethod ?? "cash",
       paymentStatus: order.paymentStatus ?? "unpaid",
+      pickupNote: order.pickupNote ?? "",
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,
       customer: c
-        ? { name: c.name, phone: c.phone, address: c.address, notes: c.notes ?? "", location: c.location ?? null }
+        ? {
+            name: c.name,
+            phone: c.phone,
+            address: c.address ?? "",
+            notes: c.notes ?? "",
+            location: c.location ?? null,
+          }
         : null,
       lines: order.lines.map((l) => ({
         name: l.nameSnapshot,

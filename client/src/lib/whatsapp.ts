@@ -14,6 +14,7 @@ export function whatsappUrl(o: { order: PublicOrder; token: string; lang: Lang; 
   const money = (n: number) => formatMoney(n, r.currency, lang);
   const pct = String(order.vatBps / 100);
   const delivery = order.orderType === "delivery";
+  const takeaway = order.orderType === "takeaway";
   const c = order.customer;
 
   const itemRows = order.lines.flatMap((l) => {
@@ -21,9 +22,12 @@ export function whatsappUrl(o: { order: PublicOrder; token: string; lang: Lang; 
     return l.note ? [row, `   ${ct.waNote}: ${l.note}`] : [row];
   });
 
+  const kind = delivery ? ct.delivery : takeaway ? ct.takeaway : t.table(String(order.tableNumber ?? ""));
+
   const parts: (string | null)[] = [
     ct.waNewOrder(pick(r.name, lang)),
-    delivery ? ct.delivery : t.table(String(order.tableNumber ?? "")),
+    kind,
+    takeaway && order.pickupNote ? `${ct.pickupTime}: ${order.pickupNote}` : null,
     "",
     ...itemRows,
     "",
@@ -39,7 +43,7 @@ export function whatsappUrl(o: { order: PublicOrder; token: string; lang: Lang; 
       "",
       `${ct.name}: ${c.name}`,
       `${ct.phone}: ${c.phone}`,
-      `${ct.address}: ${c.address}`,
+      c.address ? `${ct.address}: ${c.address}` : null,
       c.notes ? `${ct.waNote}: ${c.notes}` : null,
       c.location ? `${ct.waLocation}: ${mapsUrl(c.location)}` : null,
     );

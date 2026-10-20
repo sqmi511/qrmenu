@@ -1,5 +1,17 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { Armchair, Bike, Loader2, Pencil, ShoppingBag, X, type LucideIcon } from "lucide-react";
+import {
+  Armchair,
+  Bike,
+  Clock,
+  Loader2,
+  Pencil,
+  Phone,
+  ShoppingBag,
+  Store,
+  User,
+  X,
+  type LucideIcon,
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../../context/cart-context";
@@ -71,9 +83,14 @@ function TypeToggle({
   const meta: Record<OrderType, { label: string; icon: LucideIcon }> = {
     dine_in: { label: ct.dineIn, icon: Armchair },
     delivery: { label: ct.delivery, icon: Bike },
+    takeaway: { label: ct.takeaway, icon: Store },
   };
   return (
-    <div role="radiogroup" aria-label={ct.orderType} className="relative grid grid-cols-2 rounded-full bg-line/50 p-1">
+    <div
+      role="radiogroup"
+      aria-label={ct.orderType}
+      className={cn("relative grid rounded-full bg-line/50 p-1", types.length === 3 ? "grid-cols-3" : "grid-cols-2")}
+    >
       {types.map((ty) => {
         const M = meta[ty];
         const active = ty === value;
@@ -85,7 +102,7 @@ function TypeToggle({
             aria-checked={active}
             onClick={() => onChange(ty)}
             className={cn(
-              "relative flex h-11 items-center justify-center gap-2 rounded-full text-sm font-semibold transition-colors",
+              "relative flex h-11 items-center justify-center gap-1.5 rounded-full px-1 text-sm font-semibold transition-colors",
               active ? "text-white" : "text-muted hover:text-ink",
             )}
           >
@@ -96,8 +113,8 @@ function TypeToggle({
                 className="absolute inset-0 rounded-full bg-brand shadow-soft"
               />
             )}
-            <M.icon className="relative h-4 w-4" aria-hidden />
-            <span className="relative">{M.label}</span>
+            <M.icon className="relative h-4 w-4 shrink-0" aria-hidden />
+            <span className="relative truncate">{M.label}</span>
           </button>
         );
       })}
@@ -165,6 +182,7 @@ export default function CartDrawer({ open, onClose, lines, subtotal, restaurant,
   const types: OrderType[] = [];
   if (restaurant.dineInEnabled) types.push("dine_in");
   if (restaurant.deliveryEnabled) types.push("delivery");
+  if (restaurant.takeawayEnabled) types.push("takeaway");
 
   const methods: PaymentMethod[] = [];
   if (restaurant.paymentCash) methods.push("cash");
@@ -180,12 +198,14 @@ export default function CartDrawer({ open, onClose, lines, subtotal, restaurant,
 
   const [tableInput, setTableInput] = useState("");
   const [form, setForm] = useState<CustomerInput>(loadCustomer);
+  const [pickupNote, setPickupNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const off = lang === "ar" ? "-100%" : "100%";
 
   const delivery = orderType === "delivery";
+  const takeaway = orderType === "takeaway";
   const quote = delivery ? quoteDelivery(restaurant, subtotal, form.location) : null;
   const fee = delivery ? (quote?.ok ? quote.feeMinor : restaurant.deliveryFeeMinor) : 0;
   const quoteMsg = quote && !quote.ok ? (quote.reason === "too_far" ? ct.outsideArea : ct.shareForFee) : null;
@@ -229,6 +249,17 @@ export default function CartDrawer({ open, onClose, lines, subtotal, restaurant,
       if (!Number.isInteger(n) || n < 1) return setError(t.tableRequired);
       if (n > restaurant.tableCount) return setError(`${t.tableLabel}: ${t.tableHint(restaurant.tableCount)}`);
       input = { orderType, tableNumber: n, paymentMethod: payment, lines: itemLines };
+    } else if (orderType === "takeaway") {
+      const phone = form.phone.replace(/[\s()-]/g, "");
+      if (form.name.trim().length < 2) return setError(ct.nameRequired);
+      if (!/^\+?\d{6,15}$/.test(phone)) return setError(ct.phoneInvalid);
+      input = {
+        orderType,
+        paymentMethod: payment,
+        customer: { name: form.name.trim(), phone },
+        pickupNote: pickupNote.trim() || undefined,
+        lines: itemLines,
+      };
     } else {
       const phone = form.phone.replace(/[\s()-]/g, "");
       if (form.name.trim().length < 2) return setError(ct.nameRequired);
@@ -254,7 +285,7 @@ export default function CartDrawer({ open, onClose, lines, subtotal, restaurant,
     setError(null);
     try {
       const { token } = await placeOrder(slug, input);
-      if (orderType === "delivery") saveCustomer(form);
+      if (orderType !== "dine_in") saveCustomer(form);
       clear();
       navigate(`/r/${slug}/order/${token}`, { state: { fresh: true } });
     } catch (e) {
@@ -327,6 +358,37 @@ export default function CartDrawer({ open, onClose, lines, subtotal, restaurant,
                       {types.length > 1 && <TypeToggle types={types} value={orderType} onChange={setChosen} />}
                       {delivery ? (
                         <DeliveryForm value={form} onChange={setForm} />
+                      ) : takeaway ? (
+                        <div className="space-y-4">
+                          <Field
+                            label={ct.name}
+                            icon={User}
+                            autoComplete="name"
+                            maxLength={80}
+                            value={form.name}
+                            onChange={(e) => setForm({ ...form, name: e.target.value })}
+                          />
+                          <Field
+                            label={ct.phone}
+                            icon={Phone}
+                            type="tel"
+                            inputMode="tel"
+                            autoComplete="tel"
+                            maxLength={20}
+                            hint={ct.phoneHintTakeaway}
+                            value={form.phone}
+                            onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/[^\d+\s()-]/g, "") })}
+                          />
+                          <Field
+                            label={ct.pickupTimeOptional}
+                            icon={Clock}
+                            maxLength={80}
+                            autoComplete="off"
+                            hint={ct.pickupTimeHint}
+                            value={pickupNote}
+                            onChange={(e) => setPickupNote(e.target.value)}
+                          />
+                        </div>
                       ) : table ? (
                         <p className="flex items-center gap-2 text-sm font-semibold text-brand-ink">
                           <Armchair className="h-4 w-4" aria-hidden />
@@ -344,7 +406,7 @@ export default function CartDrawer({ open, onClose, lines, subtotal, restaurant,
                           onChange={(e) => setTableInput(e.target.value.replace(/\D/g, ""))}
                         />
                       )}
-                      <PaymentPicker methods={methods} value={payment} onChange={setMethod} delivery={delivery} />
+                      <PaymentPicker methods={methods} value={payment} onChange={setMethod} type={orderType} />
                     </>
                   )}
                 </section>

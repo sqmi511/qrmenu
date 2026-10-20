@@ -19,6 +19,7 @@ export interface AdminRestaurant {
   pricesIncludeVat: boolean;
   dineInEnabled: boolean;
   deliveryEnabled: boolean;
+  takeawayEnabled?: boolean;
   deliveryFeeMinor: number;
   minDeliveryOrderMinor: number;
   whatsappNumber: string;

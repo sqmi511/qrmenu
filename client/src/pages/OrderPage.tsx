@@ -68,9 +68,11 @@ export default function OrderPage() {
   } else {
     const { restaurant } = data;
     const delivery = data.orderType === "delivery";
+    const takeaway = data.orderType === "takeaway";
     const cardPay = data.paymentMethod === "card";
     const paid = data.paymentStatus === "paid";
     const menuHref = `/r/${slug ?? restaurant.slug}${data.tableNumber ? `?table=${data.tableNumber}` : ""}`;
+    const kind = delivery ? ct.delivery : takeaway ? ct.takeaway : t.table(String(data.tableNumber ?? ""));
 
     body = (
       <div className="mx-auto max-w-md px-4 pb-16 pt-4">
@@ -107,7 +109,7 @@ export default function OrderPage() {
 
           <h1 className="mt-4 text-2xl font-extrabold">{t.orderStatus}</h1>
           <p className="mt-1 text-sm text-muted">
-            {pick(restaurant.name, lang)} · {delivery ? ct.delivery : t.table(String(data.tableNumber ?? ""))}
+            {pick(restaurant.name, lang)} · {kind}
           </p>
 
           {restaurant.whatsappNumber && token && data.status !== "cancelled" && (
@@ -128,17 +130,24 @@ export default function OrderPage() {
           <section className={`${card} mt-6`}>
             <OrderTimeline
               status={data.status}
-              labels={delivery ? ct.deliveryStatusLabels : undefined}
-              hints={delivery ? ct.deliveryStatusHints : undefined}
+              labels={delivery ? ct.deliveryStatusLabels : takeaway ? ct.takeawayStatusLabels : undefined}
+              hints={delivery ? ct.deliveryStatusHints : takeaway ? ct.takeawayStatusHints : undefined}
             />
           </section>
 
           {data.customer && (
             <section className={`${card} mt-4`}>
-              <h2 className="font-bold">{ct.deliveryTo}</h2>
+              <h2 className="font-bold">{takeaway ? ct.pickupDetails : ct.deliveryTo}</h2>
               <p className="mt-2 text-sm font-semibold">{data.customer.name}</p>
-              <p className="text-sm text-muted">{data.customer.address}</p>
-              {data.deliveryDistanceKm !== null && (
+              {takeaway && <p className="text-sm text-muted">{data.customer.phone}</p>}
+              {takeaway && data.pickupNote && (
+                <p className="mt-1 text-sm">
+                  <span className="text-muted">{ct.pickupTime}: </span>
+                  <span className="font-semibold">{data.pickupNote}</span>
+                </p>
+              )}
+              {data.customer.address && <p className="text-sm text-muted">{data.customer.address}</p>}
+              {delivery && data.deliveryDistanceKm !== null && (
                 <p className="mt-1 text-xs text-muted">{ct.away(data.deliveryDistanceKm.toFixed(1))}</p>
               )}
               {data.customer.location && (

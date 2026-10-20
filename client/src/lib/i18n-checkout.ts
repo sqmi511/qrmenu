@@ -5,12 +5,18 @@ const en = {
   orderType: "Order type",
   dineIn: "Dine in",
   delivery: "Delivery",
+  takeaway: "Takeaway",
   name: "Full name",
   phone: "Phone number",
   phoneHint: "So the driver can reach you",
+  phoneHintTakeaway: "So we can call you when it's ready",
   address: "Delivery address",
   addressHint: "Street, building, floor, landmark",
   deliveryNotes: "Notes for the driver (optional)",
+  pickupTime: "Pickup time",
+  pickupTimeOptional: "Pickup time (optional)",
+  pickupTimeHint: "For example: in 20 minutes",
+  pickupDetails: "Pickup details",
   useLocation: "Share my location",
   locating: "Getting location…",
   locationAttached: "Location attached",
@@ -39,9 +45,18 @@ const en = {
   payment: "Payment",
   payCash: "Cash",
   payCard: "Card machine",
-  payCashHint: (delivery: boolean): string => (delivery ? "Pay the driver in cash" : "Pay at the table in cash"),
-  payCardHint: (delivery: boolean): string =>
-    delivery ? "Pay by Visa or Mastercard on the card machine" : "Pay by Visa or Mastercard on our card machine",
+  payCashHint: (type: string): string =>
+    type === "delivery"
+      ? "Pay the driver in cash"
+      : type === "takeaway"
+        ? "Pay in cash when you pick up"
+        : "Pay at the table in cash",
+  payCardHint: (type: string): string =>
+    type === "delivery"
+      ? "Pay by Visa or Mastercard on the card machine"
+      : type === "takeaway"
+        ? "Pay by Visa or Mastercard when you pick up"
+        : "Pay by Visa or Mastercard on our card machine",
   paid: "Paid",
   unpaid: "Payment due",
   shareForFee: "Share your location to calculate the delivery fee.",
@@ -63,18 +78,40 @@ const en = {
     served: "Delivered. Enjoy your meal!",
     cancelled: "This order was cancelled. Contact the restaurant if you need help.",
   } as Record<string, string>,
+  takeawayStatusLabels: {
+    pending: "Order received",
+    accepted: "Accepted",
+    preparing: "Preparing",
+    ready: "Ready for pickup",
+    served: "Picked up",
+    cancelled: "Cancelled",
+  } as Record<string, string>,
+  takeawayStatusHints: {
+    pending: "Waiting for the restaurant to confirm.",
+    accepted: "The restaurant confirmed your order.",
+    preparing: "The kitchen is preparing your food.",
+    ready: "Your order is ready. Come and pick it up.",
+    served: "Picked up. Enjoy your meal!",
+    cancelled: "This order was cancelled. Contact the restaurant if you need help.",
+  } as Record<string, string>,
 };
 
 const ar: typeof en = {
   orderType: "نوع الطلب",
   dineIn: "داخل المطعم",
   delivery: "توصيل",
+  takeaway: "سفري",
   name: "الاسم الكامل",
   phone: "رقم الهاتف",
   phoneHint: "ليتمكن السائق من التواصل معك",
+  phoneHintTakeaway: "لنتصل بك عندما يصبح جاهزاً",
   address: "عنوان التوصيل",
   addressHint: "الشارع، المبنى، الطابق، أقرب معلم",
   deliveryNotes: "ملاحظات للسائق (اختياري)",
+  pickupTime: "وقت الاستلام",
+  pickupTimeOptional: "وقت الاستلام (اختياري)",
+  pickupTimeHint: "مثلاً: بعد ٢٠ دقيقة",
+  pickupDetails: "تفاصيل الاستلام",
   useLocation: "مشاركة موقعي",
   locating: "جارٍ تحديد الموقع…",
   locationAttached: "تم إرفاق الموقع",
@@ -103,9 +140,14 @@ const ar: typeof en = {
   payment: "الدفع",
   payCash: "نقداً",
   payCard: "جهاز البطاقات",
-  payCashHint: (delivery) => (delivery ? "ادفع نقداً للسائق" : "ادفع نقداً على الطاولة"),
-  payCardHint: (delivery) =>
-    delivery ? "ادفع بفيزا أو ماستركارد عبر جهاز البطاقات" : "ادفع بفيزا أو ماستركارد عبر جهاز البطاقات لدينا",
+  payCashHint: (type) =>
+    type === "delivery" ? "ادفع نقداً للسائق" : type === "takeaway" ? "ادفع نقداً عند الاستلام" : "ادفع نقداً على الطاولة",
+  payCardHint: (type) =>
+    type === "delivery"
+      ? "ادفع بفيزا أو ماستركارد عبر جهاز البطاقات"
+      : type === "takeaway"
+        ? "ادفع بفيزا أو ماستركارد عند الاستلام"
+        : "ادفع بفيزا أو ماستركارد عبر جهاز البطاقات لدينا",
   paid: "مدفوع",
   unpaid: "بانتظار الدفع",
   shareForFee: "شارك موقعك لحساب رسوم التوصيل.",
@@ -125,6 +167,22 @@ const ar: typeof en = {
     preparing: "المطبخ يحضّر طعامك.",
     ready: "السائق في الطريق إليك.",
     served: "تم التوصيل. بالهناء والشفاء!",
+    cancelled: "تم إلغاء الطلب. تواصل مع المطعم إن لزم.",
+  },
+  takeawayStatusLabels: {
+    pending: "تم استلام الطلب",
+    accepted: "تم القبول",
+    preparing: "قيد التحضير",
+    ready: "جاهز للاستلام",
+    served: "تم الاستلام",
+    cancelled: "أُلغي",
+  },
+  takeawayStatusHints: {
+    pending: "بانتظار تأكيد المطعم.",
+    accepted: "أكّد المطعم طلبك.",
+    preparing: "المطبخ يحضّر طعامك.",
+    ready: "طلبك جاهز. تفضّل بالاستلام.",
+    served: "تم الاستلام. بالهناء والشفاء!",
     cancelled: "تم إلغاء الطلب. تواصل مع المطعم إن لزم.",
   },
 };

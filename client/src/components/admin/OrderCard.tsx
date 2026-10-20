@@ -3,12 +3,14 @@ import {
   Armchair,
   Banknote,
   Bike,
+  Clock,
   CreditCard,
   FileText,
   Loader2,
   MapPin,
   MessageCircle,
   Phone,
+  Store,
   X,
 } from "lucide-react";
 import { cn } from "../../lib/cn";
@@ -28,11 +30,13 @@ const STATUS: Record<OrderStatus, { label: string; cls: string }> = {
   cancelled: { label: "Cancelled", cls: "bg-red-500/15 text-red-700 dark:text-red-300" },
 };
 
-const NEXT: Partial<Record<OrderStatus, { to: OrderStatus; label: string; delivery?: string }>> = {
+const NEXT: Partial<
+  Record<OrderStatus, { to: OrderStatus; label: string; delivery?: string; takeaway?: string }>
+> = {
   pending: { to: "accepted", label: "Accept" },
   accepted: { to: "preparing", label: "Start preparing" },
-  preparing: { to: "ready", label: "Mark ready", delivery: "Out for delivery" },
-  ready: { to: "served", label: "Mark served", delivery: "Mark delivered" },
+  preparing: { to: "ready", label: "Mark ready", delivery: "Out for delivery", takeaway: "Ready for pickup" },
+  ready: { to: "served", label: "Mark served", delivery: "Mark delivered", takeaway: "Mark picked up" },
 };
 
 const CANCELLABLE: OrderStatus[] = ["pending", "accepted", "preparing"];
@@ -73,11 +77,30 @@ export default function OrderCard({
 }: Props) {
   const money = (n: number) => formatMoney(n, currency, "en");
   const delivery = order.orderType === "delivery";
+  const takeaway = order.orderType === "takeaway";
   const c = order.customer;
   const st = STATUS[order.status];
   const next = NEXT[order.status];
-  const statusLabel =
-    delivery && order.status === "ready" ? "Out for delivery" : delivery && order.status === "served" ? "Delivered" : st.label;
+  const statusLabel = delivery
+    ? order.status === "ready"
+      ? "Out for delivery"
+      : order.status === "served"
+        ? "Delivered"
+        : st.label
+    : takeaway
+      ? order.status === "ready"
+        ? "Ready for pickup"
+        : order.status === "served"
+          ? "Picked up"
+          : st.label
+      : st.label;
+  const nextLabel = next
+    ? delivery && next.delivery
+      ? next.delivery
+      : takeaway && next.takeaway
+        ? next.takeaway
+        : next.label
+    : "";
   const cardPay = order.paymentMethod === "card";
   const paid = order.paymentStatus === "paid";
   const waDigits = c?.phone.replace(/\D/g, "") ?? "";
@@ -100,10 +123,12 @@ export default function OrderCard({
           <p className="flex items-center gap-2 text-lg font-extrabold">
             {delivery ? (
               <Bike className="h-5 w-5 shrink-0 text-brand-ink" aria-hidden />
+            ) : takeaway ? (
+              <Store className="h-5 w-5 shrink-0 text-brand-ink" aria-hidden />
             ) : (
               <Armchair className="h-5 w-5 shrink-0 text-brand-ink" aria-hidden />
             )}
-            {delivery ? "Delivery" : `Table ${order.tableNumber ?? "?"}`}
+            {delivery ? "Delivery" : takeaway ? "Takeaway" : `Table ${order.tableNumber ?? "?"}`}
           </p>
           <p className="text-xs text-muted">
             {timeAgo(now - Date.parse(order.createdAt))}
@@ -120,6 +145,13 @@ export default function OrderCard({
           <span className={cn("rounded-full px-2.5 py-1 text-xs font-bold", st.cls)}>{statusLabel}</span>
         </div>
       </header>
+
+      {takeaway && order.pickupNote && (
+        <p className="inline-flex items-center gap-2 self-start rounded-full bg-brand-soft px-3 py-1.5 text-sm font-semibold text-brand-ink">
+          <Clock className="h-4 w-4" aria-hidden />
+          Pickup: {order.pickupNote}
+        </p>
+      )}
 
       <ul className="divide-y divide-line text-sm">
         {order.lines.map((l, i) => (
@@ -187,7 +219,7 @@ export default function OrderCard({
       {c && (
         <section className="space-y-2 rounded-field bg-brand-soft p-3 text-sm">
           <p className="font-bold">{c.name}</p>
-          <p className="text-muted">{c.address}</p>
+          {c.address && <p className="text-muted">{c.address}</p>}
           {c.notes && <p className="text-xs italic text-muted">“{c.notes}”</p>}
           <div className="flex flex-wrap gap-2 pt-1">
             <a
@@ -228,7 +260,7 @@ export default function OrderCard({
           {next && (
             <Button className="h-12 flex-1" disabled={busy} onClick={() => onAdvance(next.to)}>
               {busy && <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden />}
-              {delivery && next.delivery ? next.delivery : next.label}
+              {nextLabel}
             </Button>
           )}
           {CANCELLABLE.includes(order.status) && (

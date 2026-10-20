@@ -41,7 +41,13 @@ export default function Orders() {
 
   const onNew = (o: AdminOrder) => {
     setFresh((s) => new Set(s).add(o._id));
-    toast(o.orderType === "delivery" ? "New delivery order" : `New order · Table ${o.tableNumber ?? "?"}`);
+    toast(
+      o.orderType === "delivery"
+        ? "New delivery order"
+        : o.orderType === "takeaway"
+          ? "New takeaway order"
+          : `New order · Table ${o.tableNumber ?? "?"}`,
+    );
     if (sound) playChime();
     if ("vibrate" in navigator) navigator.vibrate(200);
   };

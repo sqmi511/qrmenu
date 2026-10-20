@@ -27,6 +27,13 @@ export type OrderInput =
       paymentMethod: PaymentMethod;
       customer: { name: string; phone: string; address: string; notes?: string; location?: LatLng };
       lines: OrderLineInput[];
+    }
+  | {
+      orderType: "takeaway";
+      paymentMethod: PaymentMethod;
+      customer: { name: string; phone: string };
+      pickupNote?: string;
+      lines: OrderLineInput[];
     };
 
 export async function placeOrder(slug: string, input: OrderInput) {

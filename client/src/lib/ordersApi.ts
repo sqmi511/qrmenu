@@ -5,7 +5,8 @@ export interface AdminOrder {
   _id: string;
   orderType?: OrderType;
   tableNumber?: number;
-  customer?: { name: string; phone: string; address: string; notes?: string; location?: LatLng };
+  customer?: { name: string; phone: string; address?: string; notes?: string; location?: LatLng };
+  pickupNote?: string;
   lines: { nameSnapshot: Localized; priceMinorSnapshot: number; qty: number; note?: string }[];
   subtotalMinor?: number;
   vatMinor?: number;
